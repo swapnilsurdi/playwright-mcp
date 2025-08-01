@@ -113,7 +113,10 @@ class IsolatedContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    return browser.newContext(this.browserConfig.contextOptions);
+    const contextOptions = { ...this.browserConfig.contextOptions };
+    if (this.browserConfig.permissions)
+      contextOptions.permissions = this.browserConfig.permissions;
+    return browser.newContext(contextOptions);
   }
 }
 
@@ -127,7 +130,13 @@ class CdpContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    return this.browserConfig.isolated ? await browser.newContext() : browser.contexts()[0];
+    if (this.browserConfig.isolated) {
+      const contextOptions: playwright.BrowserContextOptions = {};
+      if (this.browserConfig.permissions)
+        contextOptions.permissions = this.browserConfig.permissions;
+      return browser.newContext(contextOptions);
+    }
+    return browser.contexts()[0];
   }
 }
 
@@ -145,7 +154,10 @@ class RemoteContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    return browser.newContext();
+    const contextOptions: playwright.BrowserContextOptions = {};
+    if (this.browserConfig.permissions)
+      contextOptions.permissions = this.browserConfig.permissions;
+    return browser.newContext(contextOptions);
   }
 }
 
@@ -168,12 +180,15 @@ class PersistentContextFactory implements BrowserContextFactory {
     const browserType = playwright[this.browserConfig.browserName];
     for (let i = 0; i < 5; i++) {
       try {
-        const browserContext = await browserType.launchPersistentContext(userDataDir, {
+        const contextOptions = {
           ...this.browserConfig.launchOptions,
           ...this.browserConfig.contextOptions,
           handleSIGINT: false,
           handleSIGTERM: false,
-        });
+        };
+        if (this.browserConfig.permissions)
+          contextOptions.permissions = this.browserConfig.permissions;
+        const browserContext = await browserType.launchPersistentContext(userDataDir, contextOptions);
         const close = () => this._closeBrowserContext(browserContext, userDataDir);
         return { browserContext, close };
       } catch (error: any) {

@@ -55,6 +55,11 @@ export type Config = {
     contextOptions?: playwright.BrowserContextOptions;
 
     /**
+     * Permissions to grant to the browser context, for example ["clipboard-read", "clipboard-write"].
+     */
+    permissions?: string[];
+
+    /**
      * Chrome DevTools Protocol endpoint to connect to an existing browser instance in case of Chromium family browsers.
      */
     cdpEndpoint?: string;
