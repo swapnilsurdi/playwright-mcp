@@ -113,10 +113,7 @@ class IsolatedContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    const contextOptions = { ...this.browserConfig.contextOptions };
-    if (this.browserConfig.permissions)
-      contextOptions.permissions = this.browserConfig.permissions;
-    return browser.newContext(contextOptions);
+    return browser.newContext(this.browserConfig.contextOptions);
   }
 }
 
@@ -131,10 +128,7 @@ class CdpContextFactory extends BaseContextFactory {
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
     if (this.browserConfig.isolated) {
-      const contextOptions: playwright.BrowserContextOptions = {};
-      if (this.browserConfig.permissions)
-        contextOptions.permissions = this.browserConfig.permissions;
-      return browser.newContext(contextOptions);
+      return browser.newContext(this.browserConfig.contextOptions);
     }
     return browser.contexts()[0];
   }
@@ -154,10 +148,7 @@ class RemoteContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    const contextOptions: playwright.BrowserContextOptions = {};
-    if (this.browserConfig.permissions)
-      contextOptions.permissions = this.browserConfig.permissions;
-    return browser.newContext(contextOptions);
+    return browser.newContext(this.browserConfig.contextOptions);
   }
 }
 
@@ -186,8 +177,6 @@ class PersistentContextFactory implements BrowserContextFactory {
           handleSIGINT: false,
           handleSIGTERM: false,
         };
-        if (this.browserConfig.permissions)
-          contextOptions.permissions = this.browserConfig.permissions;
         const browserContext = await browserType.launchPersistentContext(userDataDir, contextOptions);
         const close = () => this._closeBrowserContext(browserContext, userDataDir);
         return { browserContext, close };

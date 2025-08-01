@@ -173,12 +173,14 @@ export function configFromCLIOptions(cliOptions: CLIOptions): Config {
   if (cliOptions.blockServiceWorkers)
     contextOptions.serviceWorkers = 'block';
 
+  if (cliOptions.permissions)
+    contextOptions.permissions = cliOptions.permissions;
+
   const result: Config = {
     browser: {
       browserName,
       isolated: cliOptions.isolated,
       userDataDir: cliOptions.userDataDir,
-      permissions: cliOptions.permissions,
       launchOptions,
       contextOptions,
       cdpEndpoint: cliOptions.cdpEndpoint,

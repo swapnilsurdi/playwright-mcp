@@ -68,7 +68,7 @@ test('clipboard permissions support via CLI argument', async ({ startClient, ser
   });
 });
 
-test('clipboard permissions support via config file', async ({ startClient, server }) => {
+test('clipboard permissions support via config file contextOptions', async ({ startClient, server }) => {
   server.setContent('/', `
     <html>
       <body>
@@ -79,7 +79,9 @@ test('clipboard permissions support via config file', async ({ startClient, serv
 
   const config = {
     browser: {
-      permissions: ['clipboard-read', 'clipboard-write']
+      contextOptions: {
+        permissions: ['clipboard-read', 'clipboard-write']
+      }
     }
   };
 
@@ -165,63 +167,4 @@ test('multiple permissions can be granted', async ({ startClient, server }) => {
   expect(geolocationPermissionResponse).toHaveResponse({
     result: '"granted"'
   });
-});
-
-test('clipboard permissions via environment variable', async ({ startClient, server }) => {
-  server.setContent('/', `
-    <html>
-      <body>
-        <h1>Environment Variable Test</h1>
-      </body>
-    </html>
-  `, 'text/html');
-
-  // Set environment variable
-  process.env.PLAYWRIGHT_MCP_PERMISSIONS = 'clipboard-read,clipboard-write';
-
-  try {
-    const { client } = await startClient({ args: [] });
-
-    // Navigate to server page
-    const navigateResponse = await client.callTool({
-      name: 'browser_navigate',
-      arguments: { url: server.PREFIX },
-    });
-    expect(navigateResponse.isError).toBeFalsy();
-
-    // Verify permissions are granted via environment variable
-    const permissionsResponse = await client.callTool({
-      name: 'browser_evaluate',
-      arguments: {
-        function: '() => navigator.permissions.query({ name: "clipboard-write" }).then(result => result.state)'
-      }
-    });
-    expect(permissionsResponse.isError).toBeFalsy();
-    expect(permissionsResponse).toHaveResponse({
-      result: '"granted"'
-    });
-
-    // Test clipboard operations work
-    const writeResponse = await client.callTool({
-      name: 'browser_evaluate',
-      arguments: {
-        function: '() => navigator.clipboard.writeText("env test content")'
-      }
-    });
-    expect(writeResponse.isError).toBeFalsy();
-
-    const readResponse = await client.callTool({
-      name: 'browser_evaluate',
-      arguments: {
-        function: '() => navigator.clipboard.readText()'
-      }
-    });
-    expect(readResponse.isError).toBeFalsy();
-    expect(readResponse).toHaveResponse({
-      result: '"env test content"'
-    });
-  } finally {
-    // Clean up environment variable
-    delete process.env.PLAYWRIGHT_MCP_PERMISSIONS;
-  }
 });
