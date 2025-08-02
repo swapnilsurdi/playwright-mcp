@@ -19,36 +19,47 @@ import * as playwright from 'playwright';
 
 import { logUnhandledError } from './log.js';
 import { Tab } from './tab.js';
+import { outputFile  } from './config.js';
 
-import type { Tool } from './tools/tool.js';
 import type { FullConfig } from './config.js';
-import type { BrowserContextFactory } from './browserContextFactory.js';
+import type { Tool } from './tools/tool.js';
+import type { BrowserContextFactory, ClientInfo } from './browserContextFactory.js';
 import type * as actions from './actions.js';
 import type { SessionLog } from './sessionLog.js';
 
 const testDebug = debug('pw:mcp:test');
 
+type ContextOptions = {
+  tools: Tool[];
+  config: FullConfig;
+  browserContextFactory: BrowserContextFactory;
+  sessionLog: SessionLog | undefined;
+  clientInfo: ClientInfo;
+};
+
 export class Context {
   readonly tools: Tool[];
   readonly config: FullConfig;
   readonly sessionLog: SessionLog | undefined;
+  readonly options: ContextOptions;
   private _browserContextPromise: Promise<{ browserContext: playwright.BrowserContext, close: () => Promise<void> }> | undefined;
   private _browserContextFactory: BrowserContextFactory;
   private _tabs: Tab[] = [];
   private _currentTab: Tab | undefined;
-
-  clientVersion: { name: string; version: string; } | undefined;
+  private _clientInfo: ClientInfo;
 
   private static _allContexts: Set<Context> = new Set();
   private _closeBrowserContextPromise: Promise<void> | undefined;
   private _isRunningTool: boolean = false;
   private _abortController = new AbortController();
 
-  constructor(tools: Tool[], config: FullConfig, browserContextFactory: BrowserContextFactory, sessionLog: SessionLog | undefined) {
-    this.tools = tools;
-    this.config = config;
-    this._browserContextFactory = browserContextFactory;
-    this.sessionLog = sessionLog;
+  constructor(options: ContextOptions) {
+    this.tools = options.tools;
+    this.config = options.config;
+    this.sessionLog = options.sessionLog;
+    this.options = options;
+    this._browserContextFactory = options.browserContextFactory;
+    this._clientInfo = options.clientInfo;
     testDebug('create context');
     Context._allContexts.add(this);
   }
@@ -94,7 +105,6 @@ export class Context {
     return this._currentTab!;
   }
 
-
   async closeTab(index: number | undefined): Promise<string> {
     const tab = index === undefined ? this._currentTab : this._tabs[index];
     if (!tab)
@@ -102,6 +112,10 @@ export class Context {
     const url = tab.page.url();
     await tab.page.close();
     return url;
+  }
+
+  async outputFile(name: string): Promise<string> {
+    return outputFile(this.config, this._clientInfo.rootPath, name);
   }
 
   private _onPageCreated(page: playwright.Page) {
@@ -188,7 +202,7 @@ export class Context {
     if (this._closeBrowserContextPromise)
       throw new Error('Another browser context is being closed.');
     // TODO: move to the browser context factory to make it based on isolation mode.
-    const result = await this._browserContextFactory.createContext(this.clientVersion!, this._abortController.signal);
+    const result = await this._browserContextFactory.createContext(this._clientInfo, this._abortController.signal);
     const { browserContext } = result;
     await this._setupRequestInterception(browserContext);
     if (this.sessionLog)
