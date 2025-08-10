@@ -39,7 +39,9 @@ const wait = defineTool({
     const code: string[] = [];
 
     if (params.time) {
-      code.push(`await new Promise(f => setTimeout(f, ${params.time!} * 1000));`);
+      const timeCode = `await new Promise(f => setTimeout(f, ${params.time!} * 1000));`;
+      code.push(timeCode);
+      response.addCode(timeCode);
       await new Promise(f => setTimeout(f, Math.min(30000, params.time! * 1000)));
     }
 
@@ -48,12 +50,16 @@ const wait = defineTool({
     const goneLocator = params.textGone ? tab.page.getByText(params.textGone).first() : undefined;
 
     if (goneLocator) {
-      code.push(`await page.getByText(${JSON.stringify(params.textGone)}).first().waitFor({ state: 'hidden' });`);
+      const goneCode = `await page.getByText(${JSON.stringify(params.textGone)}).first().waitFor({ state: 'hidden' });`;
+      code.push(goneCode);
+      response.addCode(goneCode);
       await goneLocator.waitFor({ state: 'hidden' });
     }
 
     if (locator) {
-      code.push(`await page.getByText(${JSON.stringify(params.text)}).first().waitFor({ state: 'visible' });`);
+      const locatorCode = `await page.getByText(${JSON.stringify(params.text)}).first().waitFor({ state: 'visible' });`;
+      code.push(locatorCode);
+      response.addCode(locatorCode);
       await locator.waitFor({ state: 'visible' });
     }
 
