@@ -19,6 +19,8 @@ import { test, expect } from './fixtures.js';
 test('test snapshot tool list', async ({ client }) => {
   const { tools } = await client.listTools();
   expect(new Set(tools.map(t => t.name))).toEqual(new Set([
+    'browser_cache_status',
+    'browser_clear_cache',
     'browser_click',
     'browser_console_messages',
     'browser_drag',
@@ -26,6 +28,7 @@ test('test snapshot tool list', async ({ client }) => {
     'browser_file_upload',
     'browser_handle_dialog',
     'browser_hover',
+    'browser_query_dom',
     'browser_select_option',
     'browser_type',
     'browser_close',
@@ -52,6 +55,8 @@ test('test tool list proxy mode', async ({ startClient }) => {
   });
   const { tools } = await client.listTools();
   expect(new Set(tools.map(t => t.name))).toEqual(new Set([
+    'browser_cache_status',
+    'browser_clear_cache',
     'browser_click',
     'browser_connect', // the extra tool
     'browser_console_messages',
@@ -60,6 +65,7 @@ test('test tool list proxy mode', async ({ startClient }) => {
     'browser_file_upload',
     'browser_handle_dialog',
     'browser_hover',
+    'browser_query_dom',
     'browser_select_option',
     'browser_type',
     'browser_close',

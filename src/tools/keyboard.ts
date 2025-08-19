@@ -30,12 +30,16 @@ const pressKey = defineTabTool({
     description: 'Press a key on the keyboard',
     inputSchema: z.object({
       key: z.string().describe('Name of the key to press or a character to generate, such as `ArrowLeft` or `a`'),
+      snapshotOptions: z.object({
+        maxLength: z.number().optional(),
+        selector: z.string().optional(),
+      }).optional().describe('Options for the snapshot after pressing key'),
     }),
     type: 'destructive',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
     response.addCode(`// Press ${params.key}`);
     response.addCode(`await page.keyboard.press('${params.key}');`);
 
@@ -49,6 +53,10 @@ const typeSchema = elementSchema.extend({
   text: z.string().describe('Text to type into the element'),
   submit: z.boolean().optional().describe('Whether to submit entered text (press Enter after)'),
   slowly: z.boolean().optional().describe('Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.'),
+  snapshotOptions: z.object({
+    maxLength: z.number().optional(),
+    selector: z.string().optional(),
+  }).optional().describe('Options for the snapshot after typing'),
 });
 
 const type = defineTabTool({
@@ -66,7 +74,7 @@ const type = defineTabTool({
 
     await tab.waitForCompletion(async () => {
       if (params.slowly) {
-        response.setIncludeSnapshot();
+        response.setIncludeSnapshot(params.snapshotOptions || {});
         response.addCode(`await page.${await generateLocator(locator)}.pressSequentially(${javascript.quote(params.text)});`);
         await locator.pressSequentially(params.text);
       } else {
@@ -75,7 +83,7 @@ const type = defineTabTool({
       }
 
       if (params.submit) {
-        response.setIncludeSnapshot();
+        response.setIncludeSnapshot(params.snapshotOptions || {});
         response.addCode(`await page.${await generateLocator(locator)}.press('Enter');`);
         await locator.press('Enter');
       }

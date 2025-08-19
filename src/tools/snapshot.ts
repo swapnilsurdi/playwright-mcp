@@ -26,13 +26,16 @@ const snapshot = defineTool({
     name: 'browser_snapshot',
     title: 'Page snapshot',
     description: 'Capture accessibility snapshot of the current page, this is better than screenshot',
-    inputSchema: z.object({}),
+    inputSchema: z.object({
+      maxLength: z.number().optional().describe('Maximum length of snapshot in characters (for large pages)'),
+      selector: z.string().optional().describe('CSS selector to limit snapshot to specific elements'),
+    }),
     type: 'readOnly',
   },
 
   handle: async (context, params, response) => {
     await context.ensureTab();
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params);
   },
 });
 
@@ -44,6 +47,10 @@ export const elementSchema = z.object({
 const clickSchema = elementSchema.extend({
   doubleClick: z.boolean().optional().describe('Whether to perform a double click instead of a single click'),
   button: z.enum(['left', 'right', 'middle']).optional().describe('Button to click, defaults to left'),
+  snapshotOptions: z.object({
+    maxLength: z.number().optional(),
+    selector: z.string().optional(),
+  }).optional().describe('Options for the snapshot after clicking'),
 });
 
 const click = defineTabTool({
@@ -57,7 +64,7 @@ const click = defineTabTool({
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
 
     const locator = await tab.refLocator(params);
     const button = params.button;
@@ -109,18 +116,25 @@ const drag = defineTabTool({
   },
 });
 
+const hoverSchema = elementSchema.extend({
+  snapshotOptions: z.object({
+    maxLength: z.number().optional(),
+    selector: z.string().optional(),
+  }).optional().describe('Options for the snapshot after hovering'),
+});
+
 const hover = defineTabTool({
   capability: 'core',
   schema: {
     name: 'browser_hover',
     title: 'Hover mouse',
     description: 'Hover over element on page',
-    inputSchema: elementSchema,
+    inputSchema: hoverSchema,
     type: 'readOnly',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
 
     const locator = await tab.refLocator(params);
     response.addCode(`await page.${await generateLocator(locator)}.hover();`);

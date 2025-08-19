@@ -419,6 +419,24 @@ http.createServer(async (req, res) => {
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
+- **browser_cache_status**
+  - Title: Get cache status
+  - Description: Get the current status of the DOM query cache
+  - Parameters: None
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clear_cache**
+  - Title: Clear DOM cache
+  - Description: Clear the DOM query cache
+  - Parameters:
+    - `url` (string, optional): Clear cache for specific URL only
+    - `olderThanSeconds` (number, optional): Clear entries older than specified seconds
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
 - **browser_click**
   - Title: Click
   - Description: Perform click on a web page
@@ -427,6 +445,7 @@ http.createServer(async (req, res) => {
     - `ref` (string): Exact target element reference from the page snapshot
     - `doubleClick` (boolean, optional): Whether to perform a double click instead of a single click
     - `button` (string, optional): Button to click, defaults to left
+    - `snapshotOptions` (object, optional): Options for the snapshot after clicking
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -466,6 +485,7 @@ http.createServer(async (req, res) => {
     - `function` (string): () => { /* code */ } or (element) => { /* code */ } when element is provided
     - `element` (string, optional): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string, optional): Exact target element reference from the page snapshot
+    - `maxResultLength` (number, optional): Maximum length of the result string (for large outputs)
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -495,6 +515,7 @@ http.createServer(async (req, res) => {
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
+    - `snapshotOptions` (object, optional): Options for the snapshot after hovering
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -504,6 +525,7 @@ http.createServer(async (req, res) => {
   - Description: Navigate to a URL
   - Parameters:
     - `url` (string): The URL to navigate to
+    - `snapshotOptions` (object, optional): Options for the snapshot after navigation
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -511,7 +533,8 @@ http.createServer(async (req, res) => {
 - **browser_navigate_back**
   - Title: Go back
   - Description: Go back to the previous page
-  - Parameters: None
+  - Parameters:
+    - `snapshotOptions` (object, optional): Options for the snapshot after going back
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -519,7 +542,8 @@ http.createServer(async (req, res) => {
 - **browser_navigate_forward**
   - Title: Go forward
   - Description: Go forward to the next page
-  - Parameters: None
+  - Parameters:
+    - `snapshotOptions` (object, optional): Options for the snapshot after going forward
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -537,7 +561,24 @@ http.createServer(async (req, res) => {
   - Description: Press a key on the keyboard
   - Parameters:
     - `key` (string): Name of the key to press or a character to generate, such as `ArrowLeft` or `a`
+    - `snapshotOptions` (object, optional): Options for the snapshot after pressing key
   - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_query_dom**
+  - Title: Query DOM
+  - Description: Query DOM elements by selector or semantic search with pagination support
+  - Parameters:
+    - `selector` (string, optional): CSS selector to query elements
+    - `searchText` (string, optional): Text to search for semantically in the DOM
+    - `limit` (number, optional): Maximum number of elements to return (default: 20, max: 100)
+    - `offset` (number, optional): Number of elements to skip for pagination
+    - `includeAttributes` (boolean, optional): Include element attributes in response
+    - `maxTextLength` (number, optional): Maximum text content length per element (default: 500)
+    - `useCache` (boolean, optional): Use cached results if available (default: true)
+    - `forceRefresh` (boolean, optional): Force refresh cache even if data exists (default: false)
+  - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
@@ -565,7 +606,9 @@ http.createServer(async (req, res) => {
 - **browser_snapshot**
   - Title: Page snapshot
   - Description: Capture accessibility snapshot of the current page, this is better than screenshot
-  - Parameters: None
+  - Parameters:
+    - `maxLength` (number, optional): Maximum length of snapshot in characters (for large pages)
+    - `selector` (string, optional): CSS selector to limit snapshot to specific elements
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
@@ -592,6 +635,7 @@ http.createServer(async (req, res) => {
     - `text` (string): Text to type into the element
     - `submit` (boolean, optional): Whether to submit entered text (press Enter after)
     - `slowly` (boolean, optional): Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.
+    - `snapshotOptions` (object, optional): Options for the snapshot after typing
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->

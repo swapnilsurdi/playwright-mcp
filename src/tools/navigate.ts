@@ -26,6 +26,10 @@ const navigate = defineTool({
     description: 'Navigate to a URL',
     inputSchema: z.object({
       url: z.string().describe('The URL to navigate to'),
+      snapshotOptions: z.object({
+        maxLength: z.number().optional(),
+        selector: z.string().optional(),
+      }).optional().describe('Options for the snapshot after navigation'),
     }),
     type: 'destructive',
   },
@@ -34,7 +38,7 @@ const navigate = defineTool({
     const tab = await context.ensureTab();
     await tab.navigate(params.url);
 
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
     response.addCode(`await page.goto('${params.url}');`);
   },
 });
@@ -45,13 +49,18 @@ const goBack = defineTabTool({
     name: 'browser_navigate_back',
     title: 'Go back',
     description: 'Go back to the previous page',
-    inputSchema: z.object({}),
+    inputSchema: z.object({
+      snapshotOptions: z.object({
+        maxLength: z.number().optional(),
+        selector: z.string().optional(),
+      }).optional().describe('Options for the snapshot after going back'),
+    }),
     type: 'readOnly',
   },
 
   handle: async (tab, params, response) => {
     await tab.page.goBack();
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
     response.addCode(`await page.goBack();`);
   },
 });
@@ -62,12 +71,17 @@ const goForward = defineTabTool({
     name: 'browser_navigate_forward',
     title: 'Go forward',
     description: 'Go forward to the next page',
-    inputSchema: z.object({}),
+    inputSchema: z.object({
+      snapshotOptions: z.object({
+        maxLength: z.number().optional(),
+        selector: z.string().optional(),
+      }).optional().describe('Options for the snapshot after going forward'),
+    }),
     type: 'readOnly',
   },
   handle: async (tab, params, response) => {
     await tab.page.goForward();
-    response.setIncludeSnapshot();
+    response.setIncludeSnapshot(params.snapshotOptions || {});
     response.addCode(`await page.goForward();`);
   },
 });

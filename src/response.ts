@@ -28,6 +28,7 @@ export class Response {
   private _includeSnapshot = false;
   private _includeTabs = false;
   private _tabSnapshot: TabSnapshot | undefined;
+  private _snapshotOptions: { maxLength?: number, selector?: string } = {};
 
   readonly toolName: string;
   readonly toolArgs: Record<string, any>;
@@ -72,8 +73,9 @@ export class Response {
     return this._images;
   }
 
-  setIncludeSnapshot() {
+  setIncludeSnapshot(options: { maxLength?: number, selector?: string } = {}) {
     this._includeSnapshot = true;
+    this._snapshotOptions = options;
   }
 
   setIncludeTabs() {
@@ -84,7 +86,7 @@ export class Response {
     // All the async snapshotting post-action is happening here.
     // Everything below should race against modal states.
     if (this._includeSnapshot && this._context.currentTab())
-      this._tabSnapshot = await this._context.currentTabOrDie().captureSnapshot();
+      this._tabSnapshot = await this._context.currentTabOrDie().captureSnapshot(this._snapshotOptions);
     for (const tab of this._context.tabs())
       await tab.updateTitle();
   }

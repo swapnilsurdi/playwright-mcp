@@ -192,10 +192,44 @@ export class Tab extends EventEmitter<TabEventsInterface> {
     return this._requests;
   }
 
-  async captureSnapshot(): Promise<TabSnapshot> {
+  async captureSnapshot(options: { maxLength?: number, selector?: string } = {}): Promise<TabSnapshot> {
     let tabSnapshot: TabSnapshot | undefined;
     const modalStates = await this._raceAgainstModalStates(async () => {
-      const snapshot = await (this.page as PageEx)._snapshotForAI();
+      let snapshot = await (this.page as PageEx)._snapshotForAI();
+
+      // Apply selector filter if provided
+      if (options.selector) {
+        try {
+          const filteredSnapshot = await this.page.evaluate(selector => {
+            const elements = document.querySelectorAll(selector);
+            const lines: string[] = [];
+
+            elements.forEach((el, idx) => {
+              const text = (el.textContent || '').trim();
+              if (text)
+                lines.push(`[${idx}] ${el.tagName.toLowerCase()}: ${text.slice(0, 200)}`);
+
+            });
+
+            return lines.join('\n');
+          }, options.selector);
+
+          if (filteredSnapshot)
+            snapshot = `Filtered snapshot for selector: ${options.selector}\n${filteredSnapshot}`;
+
+        } catch (e) {
+          // Fall back to full snapshot if selector fails
+        }
+      }
+
+      // Apply length limit if provided
+      if (options.maxLength && snapshot.length > options.maxLength) {
+        const truncated = snapshot.slice(0, options.maxLength);
+        const lastNewline = truncated.lastIndexOf('\n');
+        snapshot = truncated.slice(0, lastNewline > 0 ? lastNewline : options.maxLength) +
+                  `\n... (truncated, ${snapshot.length - options.maxLength} characters omitted)`;
+      }
+
       tabSnapshot = {
         url: this.page.url(),
         title: await this.page.title(),

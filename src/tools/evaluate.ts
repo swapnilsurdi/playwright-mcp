@@ -26,6 +26,7 @@ const evaluateSchema = z.object({
   function: z.string().describe('() => { /* code */ } or (element) => { /* code */ } when element is provided'),
   element: z.string().optional().describe('Human-readable element description used to obtain permission to interact with the element'),
   ref: z.string().optional().describe('Exact target element reference from the page snapshot'),
+  maxResultLength: z.number().optional().describe('Maximum length of the result string (for large outputs)'),
 });
 
 const evaluate = defineTabTool({
@@ -52,7 +53,15 @@ const evaluate = defineTabTool({
     await tab.waitForCompletion(async () => {
       const receiver = locator ?? tab.page as any;
       const result = await receiver._evaluateFunction(params.function);
-      response.addResult(JSON.stringify(result, null, 2) || 'undefined');
+      let resultStr = JSON.stringify(result, null, 2) || 'undefined';
+
+      // Apply length limit if specified
+      if (params.maxResultLength && resultStr.length > params.maxResultLength) {
+        resultStr = resultStr.slice(0, params.maxResultLength) +
+                   `\n... (truncated, ${resultStr.length - params.maxResultLength} characters omitted)`;
+      }
+
+      response.addResult(resultStr);
     });
   },
 });
